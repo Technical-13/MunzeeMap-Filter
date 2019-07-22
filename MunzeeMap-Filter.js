@@ -1,13 +1,19 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.19.1212
+// @version      2019.07.22.1844
 // @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
 // @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
-// @grant        none
 // @include      https://www.munzee.com/map*
+// @grant        GM_getResourceText
+// @resource     physicals  https://github.com/Technical-13/MunzeeMap-Filter/blob/master/physicals.json
+// @resource     rovers     https://github.com/Technical-13/MunzeeMap-Filter/blob/master/rovers.json
+// @resource     POIs       https://github.com/Technical-13/MunzeeMap-Filter/blob/master/POIs.json
+// @resource     noblast    https://github.com/Technical-13/MunzeeMap-Filter/blob/master/nonblastable.json
+// @resource     blastable  https://github.com/Technical-13/MunzeeMap-Filter/blob/master/blastable.json
+// @resource     special    https://github.com/Technical-13/MunzeeMap-Filter/blob/master/specials.json
 // @description  filter for munzee map
 // ==/UserScript==
 // jshint esversion: 6
@@ -18,7 +24,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.19.1212';
+const ver = '2019.07.22.1844';
 const scriptName = 'MunzeeMap Filter v' + ver;
 
 function log( intV, strConsole, strLog, ...arrArgs ) {
@@ -58,219 +64,24 @@ log( 1, 'groupCollapsed', 'Verbosity options: (click to expand)' );
 log( 1, 'log', '\n\t1) Summary\n\t2) Parameters retrieved from URL\n\t3) Variables set\n\t4) Function returns\n\t9) ALL debugging info and this notice.' );
 log( 1, 'groupEnd' );
 
-const arrBlastables = [
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual.png',
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_apricot.png',//                   Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_asparagus.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_black.png',//                     Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_blue.png',//                      Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_blue_green.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_blue_violet.png',//               Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_cadet_blue.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_brick_red.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_brown.png',//                     Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_burnt_sienna.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_bittersweet.png',//               Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_burnt_orange.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_chestnut.png',//                  Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_carnation_pink.png',//            Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_cornflower.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_cerulean.png',//                  Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_dandelion.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_forest_green.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_green_yellow.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_gold.png',//                      Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_goldenrod.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_granny_smith_apple.png',//        Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_green.png',//                     Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_gray.png',//                      Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_indigo.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_melon.png',//                     Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_mauvelous.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_magenta.png',//                   Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_macaroni_and_cheese.png',//       Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_mahogany.png',//                  Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_olive_green.png',//               Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_orange.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_orchid.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_plum.png',//                      Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_pacific_blue.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_purple_mountains_majesty.png',//  Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_periwinkle.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_pink.png',//                      Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_peach.png',//                     Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_rainbow.png',//                   Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_red.png',//                       Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_red_orange.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_raw_sienna.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_robin_egg_blue.png',//            Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_red_violet.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_salmon.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_spring_green.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_sea_green.png',//                 Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_scarlet.png',//                   Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_silver.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_timberwolf.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_tan.png',//                       Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_tickle_me_pink.png',//            Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_tumbleweed.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_turquoise_blue.png',//            Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_violet.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_violet_red.png',//                Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_wild_strawberry.png',//           Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_wisteria.png',//                  Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_yellow.png',//                    Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_yellow_green.png',//              Virtual Color
-    'https://munzee.global.ssl.fastly.net/images/pins/crossbow.png',//                          Clan Weapon
-    'https://munzee.global.ssl.fastly.net/images/pins/virtualsapphire.png',//                   Jewel
-    'https://munzee.global.ssl.fastly.net/images/pins/virtualemerald.png',//                    Jewel
-    'https://munzee.global.ssl.fastly.net/images/pins/flathammock.png',//                       Flat Friend
-    'https://munzee.global.ssl.fastly.net/images/pins/flatlou.png',//                           Flat Friend
-    'https://munzee.global.ssl.fastly.net/images/pins/flatmatt.png',//                          Flat Friend
-    'https://munzee.global.ssl.fastly.net/images/pins/flatrob.png',//                           Flat Friend
-    'https://munzee.global.ssl.fastly.net/images/pins/carnationseed.png',//                     Carnation-1
-    'https://munzee.global.ssl.fastly.net/images/pins/carnationgermination.png',//              Carnation-2
-    'https://munzee.global.ssl.fastly.net/images/pins/carnationgrowth.png',//                   Carnation-3
-    'https://munzee.global.ssl.fastly.net/images/pins/carnationbud.png',//                      Carnation-4
-    'https://munzee.global.ssl.fastly.net/images/pins/pinkcarnationblossom.png',//              Carnation-5
-    'https://munzee.global.ssl.fastly.net/images/pins/redcarnationblossom.png',//               Carnation-5
-    'https://munzee.global.ssl.fastly.net/images/pins/violetcarnationblossom.png',//            Carnation-5
-    'https://munzee.global.ssl.fastly.net/images/pins/whitecarnationblossom.png',//             Carnation-5
-    'https://munzee.global.ssl.fastly.net/images/pins/yellowcarnationblossom.png',//            Carnation-5
-    'https://munzee.global.ssl.fastly.net/images/pins/chick.png',//                             Chicken-1
-    'https://munzee.global.ssl.fastly.net/images/pins/chicken.png',//                           Chicken-2
-    'https://munzee.global.ssl.fastly.net/images/pins/eggs.png',//                              Chicken-3
-    'https://munzee.global.ssl.fastly.net/images/pins/firstwheel.png',//                        Car-1
-    'https://munzee.global.ssl.fastly.net/images/pins/penny-farthingbike.png',//                Car-2
-    'https://munzee.global.ssl.fastly.net/images/pins/musclecar.png',//                         Car-3
-    'https://munzee.global.ssl.fastly.net/images/pins/carrotseed.png',//                        Carrot-1
-    'https://munzee.global.ssl.fastly.net/images/pins/carrotplant.png',//                       Carrot-2
-    'https://munzee.global.ssl.fastly.net/images/pins/carrot.png',//                            Carrot-3
-    'https://munzee.global.ssl.fastly.net/images/pins/colt.png',//                              Horse-1
-    'https://munzee.global.ssl.fastly.net/images/pins/racehorse.png',//                         Horse-2
-    'https://munzee.global.ssl.fastly.net/images/pins/championshiphorse.png',//                 Horse-3
-    'https://munzee.global.ssl.fastly.net/images/pins/peasseed.png',//                          Peas-1
-    'https://munzee.global.ssl.fastly.net/images/pins/peasplant.png',//                         Peas-2
-    'https://munzee.global.ssl.fastly.net/images/pins/peas.png',//                              Peas-3
-    'https://munzee.global.ssl.fastly.net/images/pins/pottedplant.png',//                       Field-1
-    'https://munzee.global.ssl.fastly.net/images/pins/garden.png',//                            Field-2
-    'https://munzee.global.ssl.fastly.net/images/pins/field.png',//                             Field-3
-    'https://munzee.global.ssl.fastly.net/images/pins/farmer.png',//                            Farmer-1
-    'https://munzee.global.ssl.fastly.net/images/pins/farmerandwife.png',//                     Farmer-2
-    'https://munzee.global.ssl.fastly.net/images/pins/family.png',//                            Farmer-3
-    'https://munzee.global.ssl.fastly.net/images/pins/canoe.png',//                             Canoe-1
-    'https://munzee.global.ssl.fastly.net/images/pins/motorboat.png',//                         Canoe-2
-    'https://munzee.global.ssl.fastly.net/images/pins/submarine.png',//                         Canoe-3
-    'https://munzee.global.ssl.fastly.net/images/pins/safaritruck.png',//                       Safari-1
-    'https://munzee.global.ssl.fastly.net/images/pins/safarivan.png',//                         Safari-2
-    'https://munzee.global.ssl.fastly.net/images/pins/safaribus.png',//                         Safari-3
-    'https://munzee.global.ssl.fastly.net/images/pins/temporaryvirtual.png'//                   Temp
-];
-const arrNonBlastables = [
-    'https://munzee.global.ssl.fastly.net/images/pins/magic8ball.png',//                        LIMITED TIME
-    'https://munzee.global.ssl.fastly.net/images/pins/flatshuttle.png',//                       LIMITED TIME
-    'https://munzee.global.ssl.fastly.net/images/pins/australiaglobalgrub.png',//               MOB-Grub
-    'https://munzee.global.ssl.fastly.net/images/pins/franceglobalgrub.png',//                  MOB-Grub
-    'https://munzee.global.ssl.fastly.net/images/pins/japanglobalgrub.png',//                   MOB-Grub
-    'https://munzee.global.ssl.fastly.net/images/pins/mexicoglobalgrub.png',//                  MOB-Grub
-    'https://munzee.global.ssl.fastly.net/images/pins/usaglobalgrub.png',//                     MOB-Grub
-    'https://munzee.global.ssl.fastly.net/images/pins/retiredpegasus.png',//                    MOB-RM/ZP
-    'https://munzee.global.ssl.fastly.net/images/pins/nomadvirtual.png',//                      MOB-Nomad
-    'https://munzee.global.ssl.fastly.net/images/pins/travelernomad.png',//                     MOB-Nomad
-    'https://munzee.global.ssl.fastly.net/images/pins/virtualflatnomad.png',//                  MOB-Nomad
-    'https://munzee.global.ssl.fastly.net/images/pins/firepegasus.png',//                       SOB
-    'https://munzee.global.ssl.fastly.net/images/pins/cyclops_virtual.png',//                   PRB
-    'https://munzee.global.ssl.fastly.net/images/pins/pegasus.png',//                           PRB
-    'https://munzee.global.ssl.fastly.net/images/pins/australiaiconiclocation.png',//           AUHL
-    'https://munzee.global.ssl.fastly.net/images/pins/czechrepubliciconiclocation.png',//       CRHL
-    'https://munzee.global.ssl.fastly.net/images/pins/cahistoricallocation.png',//              CHL
-    'https://munzee.global.ssl.fastly.net/images/pins/flhistoricallocation.png',//              FHL
-    'https://munzee.global.ssl.fastly.net/images/pins/greatbritainiconiclocation.png',//        GBHL
-    'https://munzee.global.ssl.fastly.net/images/pins/iconiclocation.png',//              SHL
-    'https://munzee.global.ssl.fastly.net/images/pins/txhistoricallocation.png',//              THL
-    'https://munzee.global.ssl.fastly.net/images/pins/wahistoricallocation.png',//              WHL
-    'https://munzee.global.ssl.fastly.net/images/pins/worldheritagehistoricallocation.png',//   WHHL
-    'https://munzee.global.ssl.fastly.net/images/pins/airmystery.png',//                        Elemental
-    'https://munzee.global.ssl.fastly.net/images/pins/feather.png',//                           Elemental
-    'https://munzee.global.ssl.fastly.net/images/pins/goldenfeather.png',//                     Elemental
-    'https://munzee.global.ssl.fastly.net/images/pins/nightvisiongoggles.png',//                ZeeCret Weapon
-    'https://munzee.global.ssl.fastly.net/images/pins/infraredvirtual.png',//                   ZeeCret Weapon
-    'https://munzee.global.ssl.fastly.net/images/pins/joystickvirtual.png',//                   Joystick
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_amethyst.png',//                  Jewel
-    'https://munzee.global.ssl.fastly.net/images/pins/catapult.png',//                          Clan Weapon
-    'https://munzee.global.ssl.fastly.net/images/pins/surprise.png',//                          Surprise
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_trail.png',//                     Virtual Trail
-    'https://munzee.global.ssl.fastly.net/images/pins/virtual_resort.png'//                     Destination
-];
-const arrPOI = [
-    'https://munzee.global.ssl.fastly.net/images/pins/poiairport.png',//                        POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poicemetery.png',//                       POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poicinema.png',//                         POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poifaithplace.png',//                     POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poifirstresponders.png',//                POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poihistoricalplace.png',//                POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poihospital.png',//                       POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poilibrary.png',//                        POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poimuseum.png',//                         POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poiplaypark.png',//                       POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poipostoffice.png',//                     POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poisports.png',//                         POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poitransportation.png',//                 POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poiuniqueattraction.png',//               POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poiuniversity.png',//                     POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poiwildlife.png',//                       POI
-    'https://munzee.global.ssl.fastly.net/images/pins/poivirtualgarden.png'//                   POI
-];
-const arrSpecials = [
-    'https://munzee.global.ssl.fastly.net/images/pins/retiredcyclops',//                        MOB - RM/ZP
-    'https://munzee.global.ssl.fastly.net/images/pins/cherub.png',//                            SOB
-    'https://munzee.global.ssl.fastly.net/images/pins/chimera.png',//                           SOB
-    'https://munzee.global.ssl.fastly.net/images/pins/fairygodmother.png',//                    SOB - Fairy
-    'https://munzee.global.ssl.fastly.net/images/pins/gorgon.png',//                            SOB - Banshee
-    'https://munzee.global.ssl.fastly.net/images/pins/hadavale',//                              SOB
-    'https://munzee.global.ssl.fastly.net/images/pins/ogre',//                                  SOB
-    'https://munzee.global.ssl.fastly.net/images/pins/coldflatrob.png',//                       PRB - FFR
-    'https://munzee.global.ssl.fastly.net/images/pins/tuxflatrob.png',//                        PRB - FFR
-    'https://munzee.global.ssl.fastly.net/images/pins/beachflatrob.png',//                      PRB - FFR
-    'https://munzee.global.ssl.fastly.net/images/pins/face-offflatmatt.png',//                  PRB - FFM
-    'https://munzee.global.ssl.fastly.net/images/pins/footyflatmatt.png',//                     PRB - FFM
-    'https://munzee.global.ssl.fastly.net/images/pins/matt\'erupflatmatt.png',//                PRB - FFM
-    'https://munzee.global.ssl.fastly.net/images/pins/cyclops.png',//                           PRB - Cyclops
-    'https://munzee.global.ssl.fastly.net/images/pins/alicornpegasus.png',//                    PRB - Pegasus
-    'https://munzee.global.ssl.fastly.net/images/pins/chinesedragon.png',//                     PRB - Dragon
-    'https://munzee.global.ssl.fastly.net/images/pins/wyverndragon.png',//                      PRB - Dragon
-    'https://munzee.global.ssl.fastly.net/images/pins/banshee',//                               PRB - Banshee
-    'https://munzee.global.ssl.fastly.net/images/pins/limebutterfly',//                         PRB - Butterfly
-    'https://munzee.global.ssl.fastly.net/images/pins/monarchbutterfly',//                      PRB - Butterfly
-    'https://munzee.global.ssl.fastly.net/images/pins/morphobutterfly',//                       PRB - Butterfly
-    'https://munzee.global.ssl.fastly.net/images/pins/fairy',//                                 PRB - Fairy
-    'https://munzee.global.ssl.fastly.net/images/pins/dryadfairy',//                            PRB - Fairy
-    'https://munzee.global.ssl.fastly.net/images/pins/wildfirefairy',//                         PRB - Fairy
-    'https://munzee.global.ssl.fastly.net/images/pins/centaurfaun',//                           PRB - Faun
-    'https://munzee.global.ssl.fastly.net/images/pins/krampusfaun',//                           PRB - Faun
-    'https://munzee.global.ssl.fastly.net/images/pins/dwarfleprechaun',//                       PRB - Leprechaun
-    'https://munzee.global.ssl.fastly.net/images/pins/goblinleprechaun',//                      PRB - Leprechaun
-    'https://munzee.global.ssl.fastly.net/images/pins/melusinemermaid',//                       PRB - Mermaid
-    'https://munzee.global.ssl.fastly.net/images/pins/alicornpegasus',//                        PRB - Mermaid
-    'https://munzee.global.ssl.fastly.net/images/pins/griffinpegasus',//                        PRB - Pegasus
-    'https://munzee.global.ssl.fastly.net/images/pins/pimedus',//                               PRB
-    'https://munzee.global.ssl.fastly.net/images/pins/bcagarden.png',//         UNKOWN BLASTABILITY
-    'https://munzee.global.ssl.fastly.net/images/pins/getfitmunzeetrail.png',// UNKOWN BLASTABILITY
-    'https://munzee.global.ssl.fastly.net/images/pins/pawgarden.png',//         UNKOWN BLASTABILITY
-    'https://munzee.global.ssl.fastly.net/images/pins/mwtxusa.png',//           UNKOWN BLASTABILITY
-    'https://munzee.global.ssl.fastly.net/images/pins/captured_virtual.png',
-    'https://munzee.global.ssl.fastly.net/images/pins/owned_virtual.png'
-];
+const arrPhysicals = GM_getResourceText( 'physicals' );
+const arrBlastables = GM_getResourceText( 'blastable' );
+const arrNonBlastables = GM_getResourceText( 'noblast' );
+const arrPOI = GM_getResourceText( 'POIs' );
+const arrSpecials = GM_getResourceText( 'special' );
+const arrRovers = GM_getResourceText( 'rovers' );
 
 // $( '#footer' ).remove();
 $( 'head' ).append( $( '<style>' +
+                      '.v_blast { border: 2px inset #00FF00; }' +
+                      '.v_non { border: 2px inset #FF0000; }' +
+                      '.v_poi { border: 2px inset #EA6426; }' +
+                      '.physical { border: 2px inset #FF0000; }' +
+                      '.rover { border: 2px double #FF0000; }' +
+                      '.v_special { border: 2px inset #FF6666; }' +
                       '.ico_show { background-color: #88FF88; }' +
-                      '.ico_hide { opacity: 0.4; background-color: #FF8888; }' +
-                      '.unknown_type { border: 1px solid #0000FF; }' +
-                      '.v_blast { border: 2px solid #00FF00; }' +
-                      '.v_non { border: 1px solid #FF0000; }' +
-                      '.v_poi { border: 1px solid #EA6426; }' +
-                      '.v_special { border: 1px solid #FF6666; }' +
+                      '.ico_hide { opacity: 0.4; background-color: #FF8888; border-style: outset; }' +
+                      '.unknown_type { border-width: 3px; border-style: dashed dotted; border-color: #FF0000; }' +
                       '.filter_icon { padding: 0px 1px 0px 0px; }' +
                       '.filter_icon > div { text-align: center; }' +
                       '.filter_icon > img { height: 30px; cursor: pointer; border-radius: 5px; }' +
@@ -287,6 +98,7 @@ var filterIcons = $( '<div id="filterIcons"></div>' );
 inputbar.append( filterIcons );
 
 var iconCounter = {};
+var objAllIcons = {};
 var disabledIcons = [];
 var imgSRC = '';
 
@@ -298,49 +110,81 @@ function createfilter4Map() {
     for ( var munzeeID in mapMarkers ) {
         //img src
         imgSRC = mapMarkers[ munzeeID ]._element.style.backgroundImage.replace( 'url("', '' ).replace( '")', '' );
+        let strType = imgSRC.split( '/' )[ imgSRC.split( '/' ).length - 1 ].split( '.' )[ 0 ];
 
         if ( typeof iconCounter[ imgSRC ] == 'undefined' ) { iconCounter[ imgSRC ] = 1; }
         else { iconCounter[ imgSRC ]++; }
+
+        if ( objAllIcons[ strType ] === undefined ) { objAllIcons[ strType ] = []; }
+        objAllIcons[ strType ].push( munzeeID );
     }
 
     //Creation
     for ( imgSRC in iconCounter ) {
         let strType = imgSRC.split( '/' )[ imgSRC.split( '/' ).length - 1 ].split( '.' )[ 0 ];
-        let isVirtual = false;
-        let isBlastable = false;
-        let isPOI = false;
-        let isSpecial = false;
+        let isPhysical = ( arrPhysicals.indexOf( imgSRC ) >= 0 ? true : false );
+        let isBlastable = ( arrBlastables.indexOf( imgSRC ) >= 0 ? true : false );
+        let isNonBlastable = ( arrNonBlastables.indexOf( imgSRC ) >= 0 ? true : false );
+        let isPOI = ( arrPOI.indexOf( imgSRC ) >= 0 ? true : false );
+        let isSpecial = ( arrSpecials.indexOf( imgSRC ) >= 0 ? true : false );
+        let isVirtual = ( isNonBlastable || isBlastable || isPOI || isSpecial ? true : false );
+        let isRover = ( arrRovers.indexOf( imgSRC ) >= 0 ? true : false );
 
-        if ( arrBlastables.indexOf( imgSRC ) >= 0 ) {
-            isBlastable = true;
-        }
-        if ( arrPOI.indexOf( imgSRC ) >= 0 ) {
-            isPOI = true;
-        }
-        if ( arrSpecials.indexOf( imgSRC ) >= 0 ) {
-            isSpecial = true;
-        }
-        if ( arrNonBlastables.indexOf( imgSRC ) >= 0 || isBlastable || isPOI || isSpecial ) {
-            isVirtual = true;
+        if ( isPhysical || isVirtual || isRover ) {
+            delete objAllIcons[ strType ];
         }
 
-        console.log(
+/*        console.log(
             'Virtual: %s\tBlastable: %s\tPOI: %s\tSpecial: %s\tDisabled: %s\tType: %s',
-            ( isVirtual ? 'yes' : ' no' ),
-            ( isBlastable ? 'yes' : ' no' ),
-            ( isPOI ? 'yes' : ' no' ),
-            ( isSpecial ? 'yes' : ' no' ),
-            ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'yes' : ' no' ),
-            strType
-        );
+            ( isVirtual ? 'yes' : ' no' ), ( isBlastable ? 'yes' : ' no' ),
+            ( isPOI ? 'yes' : ' no' ), ( isSpecial ? 'yes' : ' no' ),
+            ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'yes' : ' no' ), strType );//*/
 
         //new element
         filterIcons.append (
             '<div class="pull-left filter_icon">' +
             '<div>' + iconCounter[ imgSRC ] + '</div>' +
-            '<img class="haideris ' + ( isVirtual ? ( isBlastable ? 'v_blast ' : 'v_non ' ) + ( isPOI ? 'v_poi ' : '' ) + ( isSpecial ? 'v_special ' : '' ) : 'unknown_type ' ) + ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'ico_hide' : 'ico_show' ) + '" src=' + imgSRC + ' />' +
+            '<img class="haideris ' + ( isRover ? 'rover ' : ( isVirtual ? ( isBlastable ? 'v_blast ' : 'v_non ' ) + ( isPOI ? 'v_poi ' : '' ) + ( isSpecial ? 'v_special ' : '' ) : ( isPhysical ? 'physical ' : 'unknown_type ' ) ) ) + ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'ico_hide' : 'ico_show' ) + '" src="' + imgSRC + '" />' +
             '</div>'
         );
+    }
+
+    // Submit GitHub issue for unknown types
+    var arrAllIconTypes = Object.keys( objAllIcons );
+    var intAIT = arrAllIconTypes.length;
+    if ( intAIT > 0 ) {
+        let isReporter = JSON.parse( localStorage.getItem( 'MMF' ) ).isReporter;
+        if ( isReporter === null ) {
+            let beReporter = confirm( scriptName + ' has detected types of Munzees that are not indexed.\n\n\tWould you like to report these to the script owner when found?\n\nSelect OK to report or Cancel to hide these alerts forever¹.' );
+            localStorage.setItem( 'MMF', JSON.stringify( { isReporter: beReporter } ) );
+            isReporter = beReporter;
+        }
+        if ( isReporter ) {
+            let doReport = confirm( '[ "' + arrAllIconTypes.join( '", "' ) + '" ] ' + ( intAIT === 1 ? 'is an' : 'are' ) + ' unknown Munzee type' + ( intAIT === 1 ? '' : 's' ) + ' to ' + scriptName + '.\n\n\t\t\tWould you like to let the script writter know about ' + ( intAIT === 1 ? 'it' : 'them' ) + '?' );
+            if ( doReport ) {
+                var strTitle = '?title=' + encodeURI( 'Unknown mapMarker(s) detected:' );
+                var strBody = '&body=' + encodeURI( 'Found unknown mapMarker types:' );
+                for ( let intTypeIndex in arrAllIconTypes ) {
+                    let strType = arrAllIconTypes[ intTypeIndex ];
+                    let arrList = objAllIcons[ strType ];
+                    strBody += '%0A%0A' + encodeURI( '![' + strType + '](' + imgSRC + '):' );
+                    for ( var intMunzeeID in arrList ) {
+                        let munzeeID = arrList[ intMunzeeID ];
+                        let objCoords = mapMarkers[ munzeeID ]._lngLat;
+                        let strGeoHash = geohash.encode( objCoords.lng, objCoords.lat, 12 );
+                        let strMapLink = 'https://www.munzee.com/map/' + strGeoHash + '/16.0';
+                        strBody += '%0A' + encodeURI( '* [' + objCoords.lng + ', ' + objCoords.lat + '](' + strMapLink + ')' );
+                    }
+                }
+                window.open( 'https://github.com/Technical-13/MunzeeMap-Filter/issues/new' + strTitle + strBody, '_blank', 'menubar=no,toolbar=no,location=no,status=no,width=1000' );
+            } else {
+                console.info( 'List of unknown types detected: %o', arrAllIconTypes );
+                let stopReporting = confirm( 'Would you like me to continue asking you to report unknown types?\n\nSelect OK to ask in the future or Cancel to hide these alerts forever¹.' );
+                localStorage.setItem( 'MMF', JSON.stringify( { isReporter: stopReporting } ) );
+            }
+        } else {
+            console.info( 'List of unknown types detected:\n\t%o\nWould you like to be a reporter when unknown types are found?  If so, use the following code here in the console:\n\nlocalStorage.setItem( \'MMF\', JSON.stringify( { isReporter: true } ) );', arrAllIconTypes );
+        }
     }
 
     filterIcons.append( '<div style="clear: both; height: 1px; overflow: hidden;"></div>' );
