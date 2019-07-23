@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.22.2157
+// @version      2019.07.23.0954
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/map*
@@ -26,7 +26,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.22.2157';
+const ver = '2019.07.23.0954';
 const scriptName = 'MunzeeMap Filter v' + ver;
 console.info( scriptName + ' loaded' );
 
@@ -67,24 +67,29 @@ log( 1, 'groupCollapsed', 'Verbosity options: (click to expand)' );
 log( 1, 'log', '\n\t1) Summary\n\t2) Parameters retrieved from URL\n\t3) Variables set\n\t4) Function returns\n\t9) ALL debugging info and this notice.' );
 log( 1, 'groupEnd' );
 
-const arrPhysicals = GM_getResourceText( 'physicals' );
-const arrBlastables = GM_getResourceText( 'blastable' );
-const arrNonBlastables = GM_getResourceText( 'noblast' );
-const arrPOI = GM_getResourceText( 'POIs' );
-const arrSpecials = GM_getResourceText( 'special' );
-const arrRovers = GM_getResourceText( 'rovers' );
+const arrPhysicals = JSON.parse( GM_getResourceText( 'physicals' ) ).arrPhysicals;
+const arrBlastables = JSON.parse( GM_getResourceText( 'blastable' ) ).arrBlastables;
+const arrNonBlastables = JSON.parse( GM_getResourceText( 'noblast' ) ).arrNonBlastables;
+const arrPOI = JSON.parse( GM_getResourceText( 'POIs' ) ).arrPOI;
+const arrSpecials = JSON.parse( GM_getResourceText( 'special' ) ).arrSpecials;
+const arrRovers = JSON.parse( GM_getResourceText( 'rovers' ) ).arrRovers;
+const arrDestination = [ 'https://munzee.global.ssl.fastly.net/images/pins/hotel.png', 'https://munzee.global.ssl.fastly.net/images/pins/motel.png',
+                        'https://munzee.global.ssl.fastly.net/images/pins/timesharemunzee.png', 'https://munzee.global.ssl.fastly.net/images/pins/virtual_resort.png' ];
+const arrTrail = [ 'https://munzee.global.ssl.fastly.net/images/pins/trail.png', 'https://munzee.global.ssl.fastly.net/images/pins/virtual_trail.png' ];
+var arrReported = ( !localStorage.getItem( 'MMF' ) ? [] : JSON.parse( localStorage.getItem( 'MMF' ) ).arrReported );
 
 // $( '#footer' ).remove();
 $( 'head' ).append( $( '<style>' +
-                      '.v_blast { border: 2px inset #00FF00; }' +
-                      '.v_non { border: 2px inset #FF0000; }' +
-                      '.v_poi { border: 2px inset #EA6426; }' +
-                      '.physical { border: 2px inset #FF0000; }' +
-                      '.rover { border: 2px double #FF0000; }' +
-                      '.v_special { border: 2px inset #FF6666; }' +
+                      '.v_blast { border: 2px inset #00FF00; }' +// green
+                      '.v_non { border: 2px inset #FF0000; }' +// red
+                      '.v_poi { border: 2px inset #EA6426; }' +// POI orange
+                      '.physical { border: 2px inset #330000; }' +// maroon
+                      '.rover { border: 2px double #006600; }' +// dark green
+                      '.v_special { border: 2px inset #FF00FF; }' +// Purple
                       '.ico_show { background-color: #88FF88; }' +
                       '.ico_hide { opacity: 0.4; background-color: #FF8888; border-style: outset; }' +
-                      '.unknown_type { border-width: 3px; border-style: dashed dotted; border-color: #FF0000; }' +
+                      '.reported { border-width: 3px; border-style: dashed dotted; border-color: #FFFF00; }' +// yellow
+                      '.unknown_type { border-width: 3px; border-style: dashed dotted; border-color: #FF0000; }' +// red
                       '.filter_icon { padding: 0px 1px 0px 0px; }' +
                       '.filter_icon > div { text-align: center; }' +
                       '.filter_icon > img { height: 30px; cursor: pointer; border-radius: 5px; }' +
@@ -97,6 +102,14 @@ $( '.row' ).css( 'margin', '0px' );
 $( '.panel-body' ).css( 'padding-left', '0px' ).css( 'padding-right', '0px' );
 
 var inputbar = $( '#inputbar' );
+var filterButtons = $( '<br style="line-height: 3em;"><div id="filterButtons" class="btn-group" data-toggle="buttons">' +
+                      '<label class="btn btn-success"><input id="check_blastable" type="checkbox">hide blastable</label>' +
+                      '<br class="visible-xs">' +
+                      '<label class="btn btn-success"><input id="check_non_blastable" type="checkbox">hide non-blastable</label>' +
+                      '<br class="visible-xs">' +
+                      '<label class="btn btn-success"><input id="check_poi" type="checkbox">hide POI</label>' +
+                      '</div>' );
+inputbar.append( filterButtons );
 var filterIcons = $( '<div id="filterIcons"></div>' );
 inputbar.append( filterIcons );
 
@@ -134,6 +147,7 @@ function createfilter4Map( event, xhr, settings ) {
 
     //Creation
     for ( imgSRC in iconCounter ) {
+        var isReporter = ( !localStorage.getItem( 'MMF' ) ? null : JSON.parse( localStorage.getItem( 'MMF' ) ).isReporter );
         let strType = imgSRC.split( '/' )[ imgSRC.split( '/' ).length - 1 ].split( '.' )[ 0 ];
         let isPhysical = ( arrPhysicals.indexOf( imgSRC ) >= 0 ? true : false );
         let isBlastable = ( arrBlastables.indexOf( imgSRC ) >= 0 ? true : false );
@@ -142,9 +156,19 @@ function createfilter4Map( event, xhr, settings ) {
         let isSpecial = ( arrSpecials.indexOf( imgSRC ) >= 0 ? true : false );
         let isVirtual = ( isNonBlastable || isBlastable || isPOI || isSpecial ? true : false );
         let isRover = ( arrRovers.indexOf( imgSRC ) >= 0 ? true : false );
+        let isReported = ( arrReported.indexOf( imgSRC ) >= 0 ? true : false );
 
-        if ( isPhysical || isVirtual || isRover ) {
+        let arrDebug = arrDestination.concat( arrTrail );
+        if ( arrDebug.indexOf( imgSRC ) >= 0 ) {
+            console.log( 'Debugging: %o', objAllMunzees[ objAllIcons[ strType ][ 0 ] ] );
+        }
+
+        if ( isPhysical || isVirtual || isRover || isReported ) {
             delete objAllIcons[ strType ];
+            if ( isReported && ( isPhysical || isVirtual || isRover ) ) {
+                arrReported = arrReported.splice( arrReported.indexOf( imgSRC ), 1 );
+                localStorage.setItem( 'MMF', JSON.stringify( { isReporter: isReporter, arrReported: arrReported } ) );
+            }
         }
 
 /*        console.log(
@@ -157,7 +181,7 @@ function createfilter4Map( event, xhr, settings ) {
         filterIcons.append (
             '<div class="pull-left filter_icon">' +
             '<div>' + iconCounter[ imgSRC ] + '</div>' +
-            '<img class="haideris ' + ( isRover ? 'rover ' : ( isVirtual ? ( isBlastable ? 'v_blast ' : 'v_non ' ) + ( isPOI ? 'v_poi ' : '' ) + ( isSpecial ? 'v_special ' : '' ) : ( isPhysical ? 'physical ' : 'unknown_type ' ) ) ) + ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'ico_hide' : 'ico_show' ) + '" src="' + imgSRC + '" />' +
+            '<img class="haideris ' + ( isRover ? 'rover ' : ( isVirtual ? ( isBlastable ? 'v_blast ' : 'v_non ' ) + ( isPOI ? 'v_poi ' : '' ) + ( isSpecial ? 'v_special ' : '' ) : ( isPhysical ? 'physical v_non ' : ( isReported ? 'reported ' : 'unknown_type ' ) ) ) ) + ( disabledIcons.indexOf( imgSRC ) >= 0 ? 'ico_hide' : 'ico_show' ) + '" src="' + imgSRC + '" />' +
             '</div>'
         );
     }
@@ -170,7 +194,6 @@ function createfilter4Map( event, xhr, settings ) {
     var arrAllIconTypes = Object.keys( objAllIcons );
     var intAIT = arrAllIconTypes.length;
     if ( intAIT > 0 ) {
-        let isReporter = JSON.parse( localStorage.getItem( 'MMF' ) ).isReporter;
         if ( isReporter === null ) {
             let beReporter = confirm( scriptName + ' has detected types of Munzees that are not indexed.\n\n\tWould you like to report these to the script owner when found?\n\nSelect OK to report or Cancel to hide these alerts forever¹.' );
             localStorage.setItem( 'MMF', JSON.stringify( { isReporter: beReporter } ) );
@@ -179,31 +202,35 @@ function createfilter4Map( event, xhr, settings ) {
         if ( isReporter ) {
             let doReport = confirm( '[ "' + arrAllIconTypes.join( '", "' ) + '" ] ' + ( intAIT === 1 ? 'is an' : 'are' ) + ' unknown Munzee type' + ( intAIT === 1 ? '' : 's' ) + ' to ' + scriptName + '.\n\n\t\t\tWould you like to let the script writter know about ' + ( intAIT === 1 ? 'it' : 'them' ) + '?' );
             if ( doReport ) {
+                var arrReporting = [];
                 var strTitle = '?title=';
                 var strBody = '&body=' + encodeURIComponent( 'Found unknown mapMarker types:' );
                 for ( let intTypeIndex in arrAllIconTypes ) {
                     let strType = arrAllIconTypes[ intTypeIndex ];
                     let arrList = objAllIcons[ strType ];
                     let strPinURL = objAllMunzees[ arrList[ 0 ] ].type_id;
+                    arrReporting.push( strPinURL );
                     let strPinType = ( objAllMunzees[ arrList[ 0 ] ].is_virtual == 1 ? 'virtual' : 'physical' );
                     strTitle += encodeURIComponent( 'Unknown ' + strPinType + ' type: ' + strType );
                     strBody += '%0A%0A' + encodeURIComponent( strPinURL + ' is a ' + strPinType + ': ![' + strType + '](' + strPinURL + ')' );
                     for ( var intMunzeeID in arrList ) {
                         let munzeeID = arrList[ intMunzeeID ];
-                        console.info( 'Created link for: %o', objAllMunzees[ munzeeID ] );
+//                        console.info( 'Created link for: %o', objAllMunzees[ munzeeID ] );
                         let strMunzeeOwnerLink = '[' + objAllMunzees[ munzeeID ].user + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + ')';
-                        console.log( 'strMunzeeOwnerLink: %o', strMunzeeOwnerLink );
+//                        console.log( 'strMunzeeOwnerLink: %o', strMunzeeOwnerLink );
                         let strMunzeeLink = '[' + objAllMunzees[ munzeeID ].name + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + '/' + objAllMunzees[ munzeeID ].number + ')';
-                        console.log( 'strMunzeeLink: %o', strMunzeeLink );
+//                        console.log( 'strMunzeeLink: %o', strMunzeeLink );
                         let strGeoHash = geohash.encode( objAllMunzees[ munzeeID ].lat, objAllMunzees[ munzeeID ].lon, 9 );
-                        console.log( 'strGeoHash: %o', strGeoHash );
+//                        console.log( 'strGeoHash: %o', strGeoHash );
                         let strMapLink = '[' + objAllMunzees[ munzeeID ].lat + ', ' + objAllMunzees[ munzeeID ].lon + '](https://www.munzee.com/map/' + strGeoHash + '/20.0)';
-                        console.log( 'strMapLink: %o', strMapLink );
+//                        console.log( 'strMapLink: %o', strMapLink );
                         strBody += '%0A' + encodeURIComponent( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink );
-                        console.log( '+strBody: %o', '%0A' + encodeURIComponent( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink ) );
+//                        console.log( '+strBody: %o', '%0A' + encodeURIComponent( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink ) );
                     }
                 }
                 window.open( 'https://github.com/Technical-13/MunzeeMap-Filter/issues/new' + strTitle + strBody, '_blank', 'menubar=no,toolbar=no,location=no,status=no,width=1000' );
+                arrReported = arrReported.concat( arrReporting );
+                localStorage.setItem( 'MMF', JSON.stringify( { isReporter: isReporter, arrReported: arrReported } ) );
             } else {
                 console.info( 'List of unknown types detected: %o', arrAllIconTypes );
                 let stopReporting = confirm( 'Would you like me to continue asking you to report unknown types?\n\nSelect OK to ask in the future or Cancel to hide these alerts forever¹.' );
@@ -297,9 +324,76 @@ $( document ).on( 'click', '.ico_hide.haideris', function ( e ) {
     else {
         $( this ).removeClass( 'ico_hide' ).addClass( 'ico_show' );
         var index = disabledIcons.indexOf( curr );
-        if ( index !== -1 )
-        {
-            disabledIcons.splice( index, 1 );
+        if ( index !== -1 ) { disabledIcons.splice( index, 1 ); }
+    }
+    updateMapIcons();
+} );
+
+function toggleAction( target ) {
+    let isChecked = target.checked;
+    let strOldAction = ( isChecked ? 'hide' : 'show' );
+    let strNewAction = ( isChecked ? 'show' : 'hide' );
+    $( target ).parent().html( $( target ).parent().html().replace( strOldAction, strNewAction ) );
+}
+
+// blastable
+$( document ).on( 'change', '#check_blastable', function( e ) {
+    toggleAction( e.target );
+    for ( var intCurr in arrBlastables ) {
+        var curr = arrBlastables[ intCurr ];
+//        console.log( '%d:%s: %o', intCurr, curr, arrBlastables );
+
+        if ( e.target.checked ) {
+//            console.log( 'Hiding: %o', curr );
+            $( '.v_blast.ico_show.haideris' ).removeClass( 'ico_show' ).addClass( 'ico_hide' );
+            if ( disabledIcons.indexOf( curr ) == -1 ) { disabledIcons.push( curr ); }
+        } else {
+//            console.log( 'Showing: %o', curr );
+            $( '.v_blast.ico_hide.haideris' ).removeClass( 'ico_hide' ).addClass( 'ico_show' );
+            var index = disabledIcons.indexOf( curr );
+            if ( index !== -1 ) { disabledIcons.splice( index, 1 ); }
+        }
+    }
+    updateMapIcons();
+} );
+
+// non-blastable
+$( document ).on( 'change', '#check_non_blastable', function( e ) {
+    toggleAction( e.target );
+    for ( var intCurr in arrNonBlastables ) {
+        var curr = arrNonBlastables[ intCurr ];
+//        console.log( '%d:%s: %o', intCurr, curr, arrBlastables );
+
+        if ( e.target.checked ) {
+//            console.log( 'Hiding: %o', curr );
+            $( '.v_non.ico_show.haideris' ).removeClass( 'ico_show' ).addClass( 'ico_hide' );
+            if ( disabledIcons.indexOf( curr ) == -1 ) { disabledIcons.push( curr ); }
+        } else {
+//            console.log( 'Showing: %o', curr );
+            $( '.v_non.ico_hide.haideris' ).removeClass( 'ico_hide' ).addClass( 'ico_show' );
+            var index = disabledIcons.indexOf( curr );
+            if ( index !== -1 ) { disabledIcons.splice( index, 1 ); }
+        }
+    }
+    updateMapIcons();
+} );
+
+// POIs
+$( document ).on( 'change', '#check_poi', function( e ) {
+    toggleAction( e.target );
+    for ( var intCurr in arrPOI ) {
+        var curr = arrPOI[ intCurr ];
+//        console.log( '%d:%s: %o', intCurr, curr, arrBlastables );
+
+        if ( e.target.checked ) {
+//            console.log( 'Hiding: %o', curr );
+            $( '.v_poi.ico_show.haideris' ).removeClass( 'ico_show' ).addClass( 'ico_hide' );
+            if ( disabledIcons.indexOf( curr ) == -1 ) { disabledIcons.push( curr ); }
+        } else {
+//            console.log( 'Showing: %o', curr );
+            $( '.v_poi.ico_hide.haideris' ).removeClass( 'ico_hide' ).addClass( 'ico_show' );
+            var index = disabledIcons.indexOf( curr );
+            if ( index !== -1 ) { disabledIcons.splice( index, 1 ); }
         }
     }
     updateMapIcons();
