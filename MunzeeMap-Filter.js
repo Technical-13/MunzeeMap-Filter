@@ -30,6 +30,7 @@ var isDebug = false;
 var intVerbosity = 0;
 const ver = '2019.07.22.1952';
 const scriptName = 'MunzeeMap Filter v' + ver;
+console.info( scriptName + ' loaded' );
 
 function log( intV, strConsole, strLog, ...arrArgs ) {
     if ( intV === undefined ) { intV = 0; }
@@ -101,12 +102,22 @@ var inputbar = $( '#inputbar' );
 var filterIcons = $( '<div id="filterIcons"></div>' );
 inputbar.append( filterIcons );
 
+var objAllMunzees = {};
 var iconCounter = {};
 var objAllIcons = {};
 var disabledIcons = [];
 var imgSRC = '';
 
-function createfilter4Map() {
+function createfilter4Map( event, xhr, settings ) {
+    var munzeeData = xhr.responseJSON;
+    $.each( mapMarkers, function ( key, marker ) {
+        $.each( munzeeData, function( box_key, element ) {
+            if ( element.munzee_id == key ) {
+                objAllMunzees[ key ] = element;
+            }
+        } );
+    } );
+
     iconCounter = {};
     filterIcons.empty();
 
@@ -170,19 +181,23 @@ function createfilter4Map() {
         if ( isReporter ) {
             let doReport = confirm( '[ "' + arrAllIconTypes.join( '", "' ) + '" ] ' + ( intAIT === 1 ? 'is an' : 'are' ) + ' unknown Munzee type' + ( intAIT === 1 ? '' : 's' ) + ' to ' + scriptName + '.\n\n\t\t\tWould you like to let the script writter know about ' + ( intAIT === 1 ? 'it' : 'them' ) + '?' );
             if ( doReport ) {
-                var strTitle = '?title=' + encodeURI( 'Unknown mapMarker(s) detected:' );
+                var strTitle = '?title=';
                 var strBody = '&body=' + encodeURI( 'Found unknown mapMarker types:' );
                 for ( let intTypeIndex in arrAllIconTypes ) {
                     let strType = arrAllIconTypes[ intTypeIndex ];
                     let arrList = objAllIcons[ strType ];
-                    let strPinURL = mapMarkers[ arrList[ 0 ] ]._element.style.backgroundImage.replace( 'url("', '' ).replace( '")', '' );
-                    strBody += '%0A%0A' + encodeURI( '![' + strType + '](' + strPinURL + '):' );
+                    let strPinURL = objAllMunzees[ arrList[ 0 ] ].type_id;
+                    let strPinType = ( objAllMunzees[ arrList[ 0 ] ].is_virtual == 1 ? 'virtual' : 'physical' );
+                    strTitle += encodeURI( 'Unknown ' + strPinType + ' type: ' + strType );
+                    strBody += '%0A%0A' + encodeURI( strPinURL + ' is a ' + strPinType + ': ![' + strType + '](' + strPinURL + ')' );
                     for ( var intMunzeeID in arrList ) {
                         let munzeeID = arrList[ intMunzeeID ];
-                        let objCoords = mapMarkers[ munzeeID ]._lngLat;
-                        let strGeoHash = geohash.encode( objCoords.lat,  objCoords.lng,9 );
-                        let strMapLink = 'https://www.munzee.com/map/' + strGeoHash + '/16.0';
-                        strBody += '%0A' + encodeURI( '* [' + objCoords.lat + ', ' + objCoords.lng + '](' + strMapLink + ')' );
+                        console.info( 'Created link for: %o', objAllMunzees[ munzeeID ] );
+                        let strMunzeeOwnerLink = '[' + objAllMunzees[ munzeeID ].user + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + ')';
+                        let strMunzeeLink = '[' + objAllMunzees[ munzeeID ].name + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + '/' + objAllMunzees[ munzeeID ].number + ')';
+                        let strGeoHash = geohash.encode( objAllMunzees[ munzeeID ].lat, objAllMunzees[ munzeeID ].lon, 9 );
+                        let strMapLink = '[' + objAllMunzees[ munzeeID ].lat + ', ' + objAllMunzees[ munzeeID ].lon + '](https://www.munzee.com/map/' + strGeoHash + '/20.0)';
+                        strBody += '%0A' + encodeURI( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink );
                     }
                 }
                 window.open( 'https://github.com/Technical-13/MunzeeMap-Filter/issues/new' + strTitle + strBody, '_blank', 'menubar=no,toolbar=no,location=no,status=no,width=1000' );
