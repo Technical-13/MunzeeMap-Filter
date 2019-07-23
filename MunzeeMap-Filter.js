@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.22.1952
+// @version      2019.07.22.2125
 // @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
 // @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
 // @author       technical13
@@ -28,7 +28,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.22.1952';
+const ver = '2019.07.22.2125';
 const scriptName = 'MunzeeMap Filter v' + ver;
 console.info( scriptName + ' loaded' );
 
