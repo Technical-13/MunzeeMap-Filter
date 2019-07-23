@@ -1,19 +1,19 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.22.1942
+// @version      2019.07.22.1952
 // @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
 // @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/map*
 // @grant        GM_getResourceText
-// @resource     physicals  https://github.com/Technical-13/MunzeeMap-Filter/blob/master/physicals.json
-// @resource     rovers     https://github.com/Technical-13/MunzeeMap-Filter/blob/master/rovers.json
-// @resource     POIs       https://github.com/Technical-13/MunzeeMap-Filter/blob/master/POIs.json
-// @resource     noblast    https://github.com/Technical-13/MunzeeMap-Filter/blob/master/nonblastable.json
-// @resource     blastable  https://github.com/Technical-13/MunzeeMap-Filter/blob/master/blastable.json
-// @resource     special    https://github.com/Technical-13/MunzeeMap-Filter/blob/master/specials.json
+// @resource     physicals  https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/physicals.json
+// @resource     rovers     https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/rovers.json
+// @resource     POIs       https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/POIs.json
+// @resource     noblast    https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/nonblastable.json
+// @resource     blastable  https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/blastable.json
+// @resource     special    https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/specials.json
 // @description  filter for munzee map
 // ==/UserScript==
 // jshint esversion: 6
@@ -24,7 +24,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.22.1942';
+const ver = '2019.07.22.1952';
 const scriptName = 'MunzeeMap Filter v' + ver;
 
 function log( intV, strConsole, strLog, ...arrArgs ) {
