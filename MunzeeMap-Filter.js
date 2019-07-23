@@ -1,9 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.22.2125
-// @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
-// @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
+// @version      2019.07.22.2157
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/map*
@@ -28,7 +26,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.22.2125';
+const ver = '2019.07.22.2157';
 const scriptName = 'MunzeeMap Filter v' + ver;
 console.info( scriptName + ' loaded' );
 
@@ -182,22 +180,27 @@ function createfilter4Map( event, xhr, settings ) {
             let doReport = confirm( '[ "' + arrAllIconTypes.join( '", "' ) + '" ] ' + ( intAIT === 1 ? 'is an' : 'are' ) + ' unknown Munzee type' + ( intAIT === 1 ? '' : 's' ) + ' to ' + scriptName + '.\n\n\t\t\tWould you like to let the script writter know about ' + ( intAIT === 1 ? 'it' : 'them' ) + '?' );
             if ( doReport ) {
                 var strTitle = '?title=';
-                var strBody = '&body=' + encodeURI( 'Found unknown mapMarker types:' );
+                var strBody = '&body=' + encodeURIComponent( 'Found unknown mapMarker types:' );
                 for ( let intTypeIndex in arrAllIconTypes ) {
                     let strType = arrAllIconTypes[ intTypeIndex ];
                     let arrList = objAllIcons[ strType ];
                     let strPinURL = objAllMunzees[ arrList[ 0 ] ].type_id;
                     let strPinType = ( objAllMunzees[ arrList[ 0 ] ].is_virtual == 1 ? 'virtual' : 'physical' );
-                    strTitle += encodeURI( 'Unknown ' + strPinType + ' type: ' + strType );
-                    strBody += '%0A%0A' + encodeURI( strPinURL + ' is a ' + strPinType + ': ![' + strType + '](' + strPinURL + ')' );
+                    strTitle += encodeURIComponent( 'Unknown ' + strPinType + ' type: ' + strType );
+                    strBody += '%0A%0A' + encodeURIComponent( strPinURL + ' is a ' + strPinType + ': ![' + strType + '](' + strPinURL + ')' );
                     for ( var intMunzeeID in arrList ) {
                         let munzeeID = arrList[ intMunzeeID ];
                         console.info( 'Created link for: %o', objAllMunzees[ munzeeID ] );
                         let strMunzeeOwnerLink = '[' + objAllMunzees[ munzeeID ].user + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + ')';
+                        console.log( 'strMunzeeOwnerLink: %o', strMunzeeOwnerLink );
                         let strMunzeeLink = '[' + objAllMunzees[ munzeeID ].name + '](https://www.munzee.com/m/' + objAllMunzees[ munzeeID ].user + '/' + objAllMunzees[ munzeeID ].number + ')';
+                        console.log( 'strMunzeeLink: %o', strMunzeeLink );
                         let strGeoHash = geohash.encode( objAllMunzees[ munzeeID ].lat, objAllMunzees[ munzeeID ].lon, 9 );
+                        console.log( 'strGeoHash: %o', strGeoHash );
                         let strMapLink = '[' + objAllMunzees[ munzeeID ].lat + ', ' + objAllMunzees[ munzeeID ].lon + '](https://www.munzee.com/map/' + strGeoHash + '/20.0)';
-                        strBody += '%0A' + encodeURI( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink );
+                        console.log( 'strMapLink: %o', strMapLink );
+                        strBody += '%0A' + encodeURIComponent( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink );
+                        console.log( '+strBody: %o', '%0A' + encodeURIComponent( '* ' + strMunzeeLink + ' at ' + strMapLink + ' by ' + strMunzeeOwnerLink ) );
                     }
                 }
                 window.open( 'https://github.com/Technical-13/MunzeeMap-Filter/issues/new' + strTitle + strBody, '_blank', 'menubar=no,toolbar=no,location=no,status=no,width=1000' );
