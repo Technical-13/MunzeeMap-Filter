@@ -17,10 +17,14 @@
 // @description  filter for munzee map
 // ==/UserScript==
 // jshint esversion: 6
-// basedon: MunzeeMapFilterV2 by rynee
+// basedon: MunzeeMapFilterV3 by Czimbalmos Péter AKA CzPeet
+// basedon: https://greasyfork.org/en/scripts/373493-munzeemapfilterv3
+// basedon: MunzeeMapV2 by rynee
 // basedon: https://greasyfork.org/en/scripts/11662-munzeemapv2
-// basedon: MunzeeMapFilterV3 by CzPeet
-// basedon: https://greasyfork.org/en/scripts/-munzeemapv3
+// basedon: MyMunzeeMap by pkoopmanpk
+// basedon: https://greasyfork.org/en/scripts/7062-mymunzeemap
+// basedon: MunzeeMap by Nerjuz
+// basedon: https://greasyfork.org/en/scripts/4750-munzeemap
 
 var isDebug = false;
 var intVerbosity = 0;
