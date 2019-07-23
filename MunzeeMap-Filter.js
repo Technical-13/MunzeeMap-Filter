@@ -171,7 +171,7 @@ function createfilter4Map() {
                     for ( var intMunzeeID in arrList ) {
                         let munzeeID = arrList[ intMunzeeID ];
                         let objCoords = mapMarkers[ munzeeID ]._lngLat;
-                        let strGeoHash = geohash.encode( objCoords.lng, objCoords.lat, 12 );
+                        let strGeoHash = geohash.encode( objCoords.lng, objCoords.lat, 9 );
                         let strMapLink = 'https://www.munzee.com/map/' + strGeoHash + '/16.0';
                         strBody += '%0A' + encodeURI( '* [' + objCoords.lng + ', ' + objCoords.lat + '](' + strMapLink + ')' );
                     }
