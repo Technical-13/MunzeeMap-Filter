@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.23.0954
+// @version      2019.07.23.1130
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/map*
@@ -26,7 +26,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.23.0954';
+const ver = '2019.07.23.1130';
 const scriptName = 'MunzeeMap Filter v' + ver;
 console.info( scriptName + ' loaded' );
 
@@ -360,8 +360,16 @@ $( document ).on( 'change', '#check_blastable', function( e ) {
 // non-blastable
 $( document ).on( 'change', '#check_non_blastable', function( e ) {
     toggleAction( e.target );
-    for ( var intCurr in arrNonBlastables ) {
-        var curr = arrNonBlastables[ intCurr ];
+    if ( $( '#check_poi' )[ 0 ].parentNode.innerText.indexOf( 'show' ) !== -1 ) {
+        if ( !e.target.checked ) {
+            $( '#check_poi' ).click();
+        }
+    } else if ( e.target.checked ) {
+        $( '#check_poi' ).click();
+    }
+    var arrAllNonBlastables = arrNonBlastables.concat( arrPOI, arrPhysicals, arrRovers );
+    for ( var intCurr in arrAllNonBlastables ) {
+        var curr = arrAllNonBlastables[ intCurr ];
 //        console.log( '%d:%s: %o', intCurr, curr, arrBlastables );
 
         if ( e.target.checked ) {
