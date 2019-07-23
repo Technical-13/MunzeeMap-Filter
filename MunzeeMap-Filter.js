@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2019.07.22.1844
+// @version      2019.07.22.1942
 // @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
 // @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
 // @author       technical13
@@ -24,7 +24,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2019.07.22.1844';
+const ver = '2019.07.22.1942';
 const scriptName = 'MunzeeMap Filter v' + ver;
 
 function log( intV, strConsole, strLog, ...arrArgs ) {
@@ -149,6 +149,10 @@ function createfilter4Map() {
         );
     }
 
+    filterIcons.append( '<div style="clear: both; height: 1px; overflow: hidden;"></div>' );
+
+    updateMapIcons();
+
     // Submit GitHub issue for unknown types
     var arrAllIconTypes = Object.keys( objAllIcons );
     var intAIT = arrAllIconTypes.length;
@@ -167,13 +171,14 @@ function createfilter4Map() {
                 for ( let intTypeIndex in arrAllIconTypes ) {
                     let strType = arrAllIconTypes[ intTypeIndex ];
                     let arrList = objAllIcons[ strType ];
-                    strBody += '%0A%0A' + encodeURI( '![' + strType + '](' + imgSRC + '):' );
+                    let strPinURL = mapMarkers[ arrList[ 0 ] ]._element.style.backgroundImage.replace( 'url("', '' ).replace( '")', '' );
+                    strBody += '%0A%0A' + encodeURI( '![' + strType + '](' + strPinURL + '):' );
                     for ( var intMunzeeID in arrList ) {
                         let munzeeID = arrList[ intMunzeeID ];
                         let objCoords = mapMarkers[ munzeeID ]._lngLat;
-                        let strGeoHash = geohash.encode( objCoords.lng, objCoords.lat, 9 );
+                        let strGeoHash = geohash.encode( objCoords.lat,  objCoords.lng,9 );
                         let strMapLink = 'https://www.munzee.com/map/' + strGeoHash + '/16.0';
-                        strBody += '%0A' + encodeURI( '* [' + objCoords.lng + ', ' + objCoords.lat + '](' + strMapLink + ')' );
+                        strBody += '%0A' + encodeURI( '* [' + objCoords.lat + ', ' + objCoords.lng + '](' + strMapLink + ')' );
                     }
                 }
                 window.open( 'https://github.com/Technical-13/MunzeeMap-Filter/issues/new' + strTitle + strBody, '_blank', 'menubar=no,toolbar=no,location=no,status=no,width=1000' );
@@ -186,10 +191,6 @@ function createfilter4Map() {
             console.info( 'List of unknown types detected:\n\t%o\nWould you like to be a reporter when unknown types are found?  If so, use the following code here in the console:\n\nlocalStorage.setItem( \'MMF\', JSON.stringify( { isReporter: true } ) );', arrAllIconTypes );
         }
     }
-
-    filterIcons.append( '<div style="clear: both; height: 1px; overflow: hidden;"></div>' );
-
-    updateMapIcons();
 }
 
 function updateMapIcons() {
@@ -206,19 +207,19 @@ $( document ).on( 'click', '.ico_show.haideris', function ( e ) {
 
     if ( e.ctrlKey ) {
         var icons = document.querySelectorAll( '.haideris' );
-        console.log( 'icons: %o', icons );
+//        console.log( 'icons: %o', icons );
         disabledIcons = [];
         for ( var ic in iconCounter ) {
             if ( ic != curr ) { disabledIcons.push( ic ); }
         }
-        console.log( 'disabledIcons: %o', disabledIcons );
+//        console.log( 'disabledIcons: %o', disabledIcons );
 
         for ( var i in icons ) {
-            console.log( 'icons[ i ] is a: %o', typeof( icons[ i ] ) );
+//            console.log( 'icons[ i ] is a: %o', typeof( icons[ i ] ) );
             if ( typeof( icons[ i ] ) === 'object' ) {
               let intIcoShowHide = -1;
               let strNewClass = Array.from( icons[ i ].classList );
-              console.log( 'Testing if `%o` != `%o`: %s', icons[ i ].src, curr, ( icons[ i ].src != curr ? 'NOT ' : '') + 'equal' );
+//              console.log( 'Testing if `%o` != `%o`: %s', icons[ i ].src, curr, ( icons[ i ].src != curr ? 'NOT ' : '') + 'equal' );
               if ( icons[ i ].src != curr ) {
                 intIcoShowHide = strNewClass.indexOf( 'ico_show' );
                 strNewClass[ intIcoShowHide ] = 'ico_hide';
@@ -227,7 +228,7 @@ $( document ).on( 'click', '.ico_show.haideris', function ( e ) {
                 strNewClass[ intIcoShowHide ] = 'ico_show';
               }
               strNewClass = strNewClass.join( ' ' );
-              console.log( 'Replacing classList %o with string `%s`', icons[ i ].classList, strNewClass );
+//              console.log( 'Replacing classList %o with string `%s`', icons[ i ].classList, strNewClass );
               icons[ i ].className = strNewClass;
             }
         }
@@ -245,19 +246,19 @@ $( document ).on( 'click', '.ico_hide.haideris', function ( e ) {
 
     if ( e.ctrlKey ) {
         var icons = document.querySelectorAll( '.haideris' );
-        console.log( 'icons: %o', icons );
+//        console.log( 'icons: %o', icons );
         disabledIcons = [];
         for ( var ic in iconCounter ) {
             if ( ic == curr ) { disabledIcons.push( ic ); }
         }
-        console.log( 'disabledIcons: %o', disabledIcons );
+//        console.log( 'disabledIcons: %o', disabledIcons );
 
         for ( var i in icons ) {
-            console.log( 'icons[ i ] is a: %o', typeof( icons[ i ] ) );
+//            console.log( 'icons[ i ] is a: %o', typeof( icons[ i ] ) );
             if ( typeof( icons[ i ] ) === 'object' ) {
               let intIcoShowHide = -1;
               let strNewClass = Array.from( icons[ i ].classList );
-              console.log( 'Testing if `%o` != `%o`: %s', icons[ i ].src, curr, ( icons[ i ].src != curr ? 'NOT ' : '') + 'equal' );
+//              console.log( 'Testing if `%o` != `%o`: %s', icons[ i ].src, curr, ( icons[ i ].src != curr ? 'NOT ' : '') + 'equal' );
               if ( icons[ i ].src != curr ) {
                 intIcoShowHide = strNewClass.indexOf( 'ico_hide' );
                 strNewClass[ intIcoShowHide ] = 'ico_show';
@@ -266,7 +267,7 @@ $( document ).on( 'click', '.ico_hide.haideris', function ( e ) {
                 strNewClass[ intIcoShowHide ] = 'ico_hide';
               }
               strNewClass = strNewClass.join( ' ' );
-              console.log( 'Replacing classList %o with string `%s`', icons[ i ].classList, strNewClass );
+//              console.log( 'Replacing classList %o with string `%s`', icons[ i ].classList, strNewClass );
               icons[ i ].className = strNewClass;
             }
         }
