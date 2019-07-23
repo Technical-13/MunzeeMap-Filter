@@ -3,7 +3,7 @@
 // @namespace    none
 // @version      2019.07.22.1952
 // @downloadURL  https://greasyfork.org/en/scripts/387657-munzeemap-filter
-// @updateURL    https://greasyfork.org/scripts/387657-munzeemap-filter/code/MunzeeMap%20Filter.user.js
+// @updateURL    https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/MunzeeMap-Filter.js
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/map*
