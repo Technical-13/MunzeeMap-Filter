@@ -146,7 +146,9 @@ function createfilter4Map( event, xhr, settings ) {
     }
 
     //Creation
-    for ( imgSRC in iconCounter ) {
+    var iconList = Object.keys(iconCounter).sort(function(a,b){return iconCounter[b]-iconCounter[a]});
+    for ( imgSRCIndex in iconList ) {
+        imgSRC = iconList[imgSRCIndex];
         var isReporter = ( !localStorage.getItem( 'MMF' ) ? null : JSON.parse( localStorage.getItem( 'MMF' ) ).isReporter );
         let strType = imgSRC.split( '/' )[ imgSRC.split( '/' ).length - 1 ].split( '.' )[ 0 ];
         let isPhysical = ( arrPhysicals.indexOf( imgSRC ) >= 0 ? true : false );
