@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MunzeeMap Filter
 // @namespace    none
-// @version      2020.07.07.1720
+// @version      2020.08.12.1806
 // @author       technical13
 // @supportURL   https://Discord.me/TheShoeStore
 // @include      https://www.munzee.com/*map*
@@ -13,6 +13,9 @@
 // @resource     noblast    https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/nonblastable.json
 // @resource     blastable  https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/blastable.json
 // @resource     special    https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/specials.json
+// @resource     PRBs       https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/PRBs.json
+// @resource     SOBs       https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/SOBs.json
+// @resource     MOSs       https://raw.githubusercontent.com/Technical-13/MunzeeMap-Filter/master/MOSs.json
 // @description  filter for munzee map
 // ==/UserScript==
 // jshint esversion: 6
@@ -27,7 +30,7 @@
 
 var isDebug = false;
 var intVerbosity = 0;
-const ver = '2020.07.07.1720';
+const ver = '2020.08.12.1806';
 const scriptName = 'MunzeeMap Filter v' + ver;
 console.info( scriptName + ' loaded' );
 var lastNominatimRequest = ( new Date() ).valueOf();
@@ -76,18 +79,21 @@ const arrPhysicals = JSON.parse( GM_getResourceText( 'physicals' ) ).arrPhysical
 const arrBlastables = JSON.parse( GM_getResourceText( 'blastable' ) ).arrBlastables;
 const arrNonBlastables = JSON.parse( GM_getResourceText( 'noblast' ) ).arrNonBlastables;
 const arrPOI = JSON.parse( GM_getResourceText( 'POIs' ) ).arrPOI;
-const arrSpecials = JSON.parse( GM_getResourceText( 'special' ) ).arrSpecials;
+const arrPRB = JSON.parse( GM_getResourceText( 'PRBs' ) ).arrPRBs;
+const arrSOB = JSON.parse( GM_getResourceText( 'SOBs' ) ).arrSOBs;
+const arrMOS = JSON.parse( GM_getResourceText( 'MOSs' ) ).arrMOSs;
+const arrSpecial = JSON.parse( GM_getResourceText( 'special' ) ).arrSpecials;
+const arrSpecials = arrSpecial.concat( arrPRB, arrSOB, arrMOS );
 const arrRovers = JSON.parse( GM_getResourceText( 'rovers' ) ).arrRovers;
 const arrDestination = [ 'https://munzee.global.ssl.fastly.net/images/pins/hotel.png', 'https://munzee.global.ssl.fastly.net/images/pins/motel.png',
                         'https://munzee.global.ssl.fastly.net/images/pins/timesharemunzee.png', 'https://munzee.global.ssl.fastly.net/images/pins/virtual_resort.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse1.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse2.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse3.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse4.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse5.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse6.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse7.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/skyland.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland1.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/skyland2.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland3.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/skyland4.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland5.png',
-                        'https://munzee.global.ssl.fastly.net/images/pins/skyland6.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland7.png' ];
+                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse1.png' ,
+                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse2.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse3.png' ,
+                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse4.png', 'https://munzee.global.ssl.fastly.net/images/pins/treehouse5.png' ,
+                        'https://munzee.global.ssl.fastly.net/images/pins/treehouse6.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland.png',
+                        'https://munzee.global.ssl.fastly.net/images/pins/skyland1.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland2.png',
+                        'https://munzee.global.ssl.fastly.net/images/pins/skyland3.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland4.png',
+                        'https://munzee.global.ssl.fastly.net/images/pins/skyland5.png', 'https://munzee.global.ssl.fastly.net/images/pins/skyland6.png' ];
 const arrTrail = [ 'https://munzee.global.ssl.fastly.net/images/pins/trail.png', 'https://munzee.global.ssl.fastly.net/images/pins/virtual_trail.png' ];
 var arrReported = ( !localStorage.getItem( 'MMF' ) ? [] : JSON.parse( localStorage.getItem( 'MMF' ) ).arrReported );
 
@@ -136,7 +142,7 @@ var mapAddressText = document.createElement( 'span' );
 mapAddressText.id = 'address-text';
 var mapAddressAttributionLink = document.createElement( 'a' );
 mapAddressAttributionLink.id = 'address-text-attribution-link';
-mapAddressAttributionLink.innerText = '©LocationIQ';
+mapAddressAttributionLink.innerText = 'LocationIQ';
 mapAddressAttributionLink.href = 'https://locationiq.com/attribution';
 var mapAddressAttribution = document.createElement( 'small' );
 mapAddressAttribution.id = 'address-text-attribution';
